@@ -172,7 +172,7 @@ async function main() {
         console.log(`Processing: ${url}`);
         console.log('========================================');
         
-        for (const device of ['mobile', 'desktop']) {
+        for (const device of ['desktop', 'mobile']) {
             console.log(`\nRunning ${device} test...`);
             
             const result = await runLighthouse(url, device);
