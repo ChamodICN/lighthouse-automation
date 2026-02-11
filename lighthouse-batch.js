@@ -111,7 +111,7 @@ async function runLighthouse(url, device) {
     }
     
     try {
-        await execFile('lighthouse', args);
+        await execFile('npx', ['lighthouse', ...args]);
         
         const data = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
         
