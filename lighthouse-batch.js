@@ -11,6 +11,14 @@ const URLS_FILE = 'urls.txt';
 const OUTPUT_CSV = 'lighthouse-results.csv';
 const DEBUG_PORT = Number(process.env.CHROME_DEBUG_PORT || 9222);
 const DEFAULT_PROFILE_DIR = path.join(process.env.USERPROFILE || 'C:\\Users\\Gray', 'chrome-debug-profile');
+const LIMIT = (() => {
+    const arg = process.argv.find(value => value.startsWith('--limit='));
+    if (arg) {
+        const value = Number(arg.split('=')[1]);
+        return Number.isFinite(value) && value > 0 ? Math.floor(value) : null;
+    }
+    return null;
+})();
 
 async function killChrome() {
     try {
@@ -140,10 +148,14 @@ async function runLighthouse(url, device) {
 
 async function main() {
     // Read URLs
-    const urls = fs.readFileSync(URLS_FILE, 'utf8')
+    let urls = fs.readFileSync(URLS_FILE, 'utf8')
         .split('\n')
         .map(line => line.trim())
         .filter(line => line && !line.startsWith('#'));
+    if (LIMIT) {
+        urls = urls.slice(0, LIMIT);
+        console.log(`Limiting run to first ${urls.length} URL(s).`);
+    }
     
     // Create CSV
     const csvHeader = 'URL,Device,Performance,Accessibility,Best Practices,SEO,FCP,LCP,TBT,CLS,SI\n';
