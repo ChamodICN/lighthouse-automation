@@ -111,8 +111,8 @@ async function runLighthouse(url, device) {
     }
     
     try {
-        const lighthouseCmd = process.env.LIGHTHOUSE_PATH || 'lighthouse.cmd';
-        await execFile(lighthouseCmd, args);
+        const lighthouseCmd = process.env.LIGHTHOUSE_PATH || 'lighthouse';
+        await execFile('cmd', ['/c', lighthouseCmd, ...args], { windowsHide: true });
         
         const data = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
         
