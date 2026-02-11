@@ -20,15 +20,6 @@ const LIMIT = (() => {
     return null;
 })();
 
-async function killChrome() {
-    try {
-        await exec('taskkill /F /IM chrome.exe');
-    } catch (e) {
-        // Ignore if no Chrome process
-    }
-    await sleep(2000);
-}
-
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -170,11 +161,10 @@ async function main() {
         for (const device of ['mobile', 'desktop']) {
             console.log(`\nRunning ${device} test...`);
             
-            await killChrome();
             await startChrome();
             
             const result = await runLighthouse(url, device);
-            
+
             if (result) {
                 const row = `${result.url},${result.device},${result.performance},${result.accessibility},${result.bestPractices},${result.seo},${result.fcp},${result.lcp},${result.tbt},${result.cls},${result.si}\n`;
                 fs.appendFileSync(OUTPUT_CSV, row);
@@ -182,8 +172,6 @@ async function main() {
             }
         }
     }
-    
-    await killChrome();
     
     console.log('\n========================================');
     console.log('All tests complete!');
