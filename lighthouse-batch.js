@@ -27,27 +27,17 @@ function sleep(ms) {
 function resolveChromePath() {
     if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
 
-    if (process.platform === 'win32') {
-        const prefixes = [
-            process.env.PROGRAMFILES,
-            process.env['PROGRAMFILES(X86)'],
-            process.env.LOCALAPPDATA
-        ].filter(Boolean);
-        const suffix = path.join('Google', 'Chrome', 'Application', 'chrome.exe');
-        for (const prefix of prefixes) {
-            const candidate = path.join(prefix, suffix);
-            if (fs.existsSync(candidate)) return candidate;
-        }
-        return 'chrome.exe';
+    const prefixes = [
+        process.env.PROGRAMFILES,
+        process.env['PROGRAMFILES(X86)'],
+        process.env.LOCALAPPDATA
+    ].filter(Boolean);
+    const suffix = path.join('Google', 'Chrome', 'Application', 'chrome.exe');
+    for (const prefix of prefixes) {
+        const candidate = path.join(prefix, suffix);
+        if (fs.existsSync(candidate)) return candidate;
     }
-
-    if (process.platform === 'darwin') {
-        const macPath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-        if (fs.existsSync(macPath)) return macPath;
-        return 'google-chrome';
-    }
-
-    return 'google-chrome';
+    return 'chrome.exe';
 }
 
 function requestJson(url) {
