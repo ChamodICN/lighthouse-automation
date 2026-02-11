@@ -201,7 +201,7 @@ async function main() {
     }
     
     // Create CSV
-    const csvHeader = 'URL,Device,BenchmarkIndex,Performance,FCP,LCP,TBT,CLS,SI,Accessibility,Best Practices,SEO\n';
+    const csvHeader = 'URL,Device,Performance,FCP,LCP,TBT,CLS,SI,Accessibility,Best Practices,SEO,BenchmarkIndex\n';
     fs.writeFileSync(OUTPUT_CSV, csvHeader);
 
     await startChrome();
@@ -219,7 +219,7 @@ async function main() {
 
             if (result) {
                 const benchmark = result.benchmarkIndex === null ? '' : result.benchmarkIndex;
-                const row = `${result.url},${result.device},${benchmark},${result.performance},${result.fcp},${result.lcp},${result.tbt},${result.cls},${result.si},${result.accessibility},${result.bestPractices},${result.seo}\n`;
+                const row = `${result.url},${result.device},${result.performance},${result.fcp},${result.lcp},${result.tbt},${result.cls},${result.si},${result.accessibility},${result.bestPractices},${result.seo},${benchmark}\n`;
                 fs.appendFileSync(OUTPUT_CSV, row);
                 const bench = result.benchmarkIndex !== null ? `, CPU BenchmarkIndex: ${result.benchmarkIndex}` : '';
                 console.log(`✓ ${device} complete - Performance: ${result.performance}${bench}`);
