@@ -24,6 +24,11 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function toSigFigs(value, sig = 3) {
+    if (!Number.isFinite(value)) return value;
+    return Number.parseFloat(Number(value).toPrecision(sig));
+}
+
 function resolveChromePath() {
     if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
 
@@ -129,11 +134,11 @@ async function runLighthouse(url, device) {
             accessibility: Math.round(data.categories.accessibility.score * 100),
             bestPractices: Math.round(data.categories['best-practices'].score * 100),
             seo: Math.round(data.categories.seo.score * 100),
-            fcp: Math.round(data.audits['first-contentful-paint'].numericValue / 1000),
-            lcp: Math.round(data.audits['largest-contentful-paint'].numericValue / 1000),
-            tbt: Math.round(data.audits['total-blocking-time'].numericValue / 1000),
+            fcp: toSigFigs(data.audits['first-contentful-paint'].numericValue / 1000),
+            lcp: toSigFigs(data.audits['largest-contentful-paint'].numericValue / 1000),
+            tbt: toSigFigs(data.audits['total-blocking-time'].numericValue / 1000),
             cls: parseFloat(data.audits['cumulative-layout-shift'].numericValue.toFixed(3)),
-            si: Math.round(data.audits['speed-index'].numericValue / 1000)
+            si: toSigFigs(data.audits['speed-index'].numericValue / 1000)
         };
         
         fs.unlinkSync(jsonFile);
