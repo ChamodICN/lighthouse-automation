@@ -151,6 +151,8 @@ async function main() {
     // Create CSV
     const csvHeader = 'URL,Device,Performance,Accessibility,Best Practices,SEO,FCP,LCP,TBT,CLS,SI\n';
     fs.writeFileSync(OUTPUT_CSV, csvHeader);
+
+    await startChrome();
     
     // Process each URL
     for (const url of urls) {
@@ -160,8 +162,6 @@ async function main() {
         
         for (const device of ['mobile', 'desktop']) {
             console.log(`\nRunning ${device} test...`);
-            
-            await startChrome();
             
             const result = await runLighthouse(url, device);
 
