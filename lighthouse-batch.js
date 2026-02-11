@@ -86,9 +86,12 @@ async function waitForDebugPort(port, timeoutMs = 15000) {
 async function startChrome() {
     const chromePath = resolveChromePath();
     const userDataDir = process.env.CHROME_USER_DATA_DIR || DEFAULT_PROFILE_DIR;
+    const cacheDir = process.env.CHROME_CACHE_DIR || path.join(os.tmpdir(), 'chrome-cache');
     const chromeArgs = [
         `--remote-debugging-port=${DEBUG_PORT}`,
-        `--user-data-dir=${userDataDir}`
+        `--user-data-dir=${userDataDir}`,
+        `--disk-cache-dir=${cacheDir}`,
+        '--disk-cache-size=0'
     ];
 
     spawn('cmd', ['/c', 'start', '', chromePath, ...chromeArgs], {
@@ -118,6 +121,10 @@ async function runLighthouse(url, device) {
         args.push('--screenEmulation.deviceScaleFactor=1');
         args.push('--screenEmulation.mobile=false');
         args.push('--screenEmulation.disabled=false');
+        args.push('--throttling-method=devtools');
+        args.push('--throttling.rttMs=40');
+        args.push('--throttling.throughputKbps=10240');
+        args.push('--throttling.cpuSlowdownMultiplier=1');
     } else {
         args.push('--emulated-form-factor=mobile');
         args.push('--screenEmulation.width=412');
@@ -125,6 +132,10 @@ async function runLighthouse(url, device) {
         args.push('--screenEmulation.deviceScaleFactor=2.625');
         args.push('--screenEmulation.mobile=true');
         args.push('--screenEmulation.disabled=false');
+        args.push('--throttling-method=devtools');
+        args.push('--throttling.rttMs=150');
+        args.push('--throttling.throughputKbps=1638.4');
+        args.push('--throttling.cpuSlowdownMultiplier=4');
     }
     
     try {
