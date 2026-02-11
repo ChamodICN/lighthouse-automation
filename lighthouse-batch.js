@@ -112,6 +112,19 @@ async function runLighthouse(url, device) {
     
     if (device === 'desktop') {
         args.push('--preset=desktop');
+        args.push('--emulated-form-factor=desktop');
+        args.push('--screenEmulation.width=1669');
+        args.push('--screenEmulation.height=919');
+        args.push('--screenEmulation.deviceScaleFactor=1');
+        args.push('--screenEmulation.mobile=false');
+        args.push('--screenEmulation.disabled=false');
+    } else {
+        args.push('--emulated-form-factor=mobile');
+        args.push('--screenEmulation.width=412');
+        args.push('--screenEmulation.height=823');
+        args.push('--screenEmulation.deviceScaleFactor=2.625');
+        args.push('--screenEmulation.mobile=true');
+        args.push('--screenEmulation.disabled=false');
     }
     
     try {
