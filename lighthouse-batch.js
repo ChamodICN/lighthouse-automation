@@ -167,6 +167,9 @@ async function runLighthouse(url, device) {
         const result = {
             url: domain,
             device,
+            benchmarkIndex: data.environment && Number.isFinite(data.environment.benchmarkIndex)
+                ? Math.round(data.environment.benchmarkIndex)
+                : null,
             performance: Math.round(data.categories.performance.score * 100),
             accessibility: Math.round(data.categories.accessibility.score * 100),
             bestPractices: Math.round(data.categories['best-practices'].score * 100),
@@ -198,7 +201,7 @@ async function main() {
     }
     
     // Create CSV
-    const csvHeader = 'URL,Device,Performance,FCP,LCP,TBT,CLS,SI,Accessibility,Best Practices,SEO\n';
+    const csvHeader = 'URL,Device,BenchmarkIndex,Performance,FCP,LCP,TBT,CLS,SI,Accessibility,Best Practices,SEO\n';
     fs.writeFileSync(OUTPUT_CSV, csvHeader);
 
     await startChrome();
@@ -215,9 +218,11 @@ async function main() {
             const result = await runLighthouse(url, device);
 
             if (result) {
-                const row = `${result.url},${result.device},${result.performance},${result.fcp},${result.lcp},${result.tbt},${result.cls},${result.si},${result.accessibility},${result.bestPractices},${result.seo}\n`;
+                const benchmark = result.benchmarkIndex === null ? '' : result.benchmarkIndex;
+                const row = `${result.url},${result.device},${benchmark},${result.performance},${result.fcp},${result.lcp},${result.tbt},${result.cls},${result.si},${result.accessibility},${result.bestPractices},${result.seo}\n`;
                 fs.appendFileSync(OUTPUT_CSV, row);
-                console.log(`✓ ${device} complete - Performance: ${result.performance}`);
+                const bench = result.benchmarkIndex !== null ? `, CPU BenchmarkIndex: ${result.benchmarkIndex}` : '';
+                console.log(`✓ ${device} complete - Performance: ${result.performance}${bench}`);
             }
         }
     }
