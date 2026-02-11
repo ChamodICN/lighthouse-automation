@@ -115,18 +115,25 @@ async function runLighthouse(url, device) {
         
         const data = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
         
+        let domain = url;
+        try {
+            domain = new URL(url).hostname;
+        } catch (e) {
+            // Fallback to raw input if URL parsing fails
+        }
+
         const result = {
-            url,
+            url: domain,
             device,
             performance: Math.round(data.categories.performance.score * 100),
             accessibility: Math.round(data.categories.accessibility.score * 100),
             bestPractices: Math.round(data.categories['best-practices'].score * 100),
             seo: Math.round(data.categories.seo.score * 100),
-            fcp: Math.round(data.audits['first-contentful-paint'].numericValue),
-            lcp: Math.round(data.audits['largest-contentful-paint'].numericValue),
-            tbt: Math.round(data.audits['total-blocking-time'].numericValue),
+            fcp: Math.round(data.audits['first-contentful-paint'].numericValue / 1000),
+            lcp: Math.round(data.audits['largest-contentful-paint'].numericValue / 1000),
+            tbt: Math.round(data.audits['total-blocking-time'].numericValue / 1000),
             cls: parseFloat(data.audits['cumulative-layout-shift'].numericValue.toFixed(3)),
-            si: Math.round(data.audits['speed-index'].numericValue)
+            si: Math.round(data.audits['speed-index'].numericValue / 1000)
         };
         
         fs.unlinkSync(jsonFile);
@@ -166,7 +173,7 @@ async function main() {
             const result = await runLighthouse(url, device);
 
             if (result) {
-                const row = `${result.url},${result.device},${result.performance},${result.fcp / 1000},${result.lcp / 1000},${result.tbt / 1000},${result.cls},${result.si / 1000},${result.accessibility},${result.bestPractices},${result.seo}\n`;
+                const row = `${result.url},${result.device},${result.performance},${result.fcp},${result.lcp},${result.tbt},${result.cls},${result.si},${result.accessibility},${result.bestPractices},${result.seo}\n`;
                 fs.appendFileSync(OUTPUT_CSV, row);
                 console.log(`✓ ${device} complete - Performance: ${result.performance}`);
             }
