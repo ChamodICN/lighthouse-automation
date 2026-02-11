@@ -8,7 +8,7 @@ const exec = promisify(require('child_process').exec);
 const execFile = promisify(require('child_process').execFile);
 
 const URLS_FILE = 'urls.txt';
-const OUTPUT_CSV = 'lighthouse-results.csv';
+const OUTPUT_CSV = `lighthouse-results-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
 const DEBUG_PORT = Number(process.env.CHROME_DEBUG_PORT || 9222);
 const DEFAULT_PROFILE_DIR = path.join(process.env.USERPROFILE || 'C:\\Users\\Gray', 'chrome-debug-profile');
 const LIMIT = (() => {
