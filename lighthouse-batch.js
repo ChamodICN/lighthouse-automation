@@ -19,6 +19,15 @@ const LIMIT = (() => {
     }
     return null;
 })();
+const THROTTLING_ENABLED = (() => {
+    const arg = process.argv.find(value => value.startsWith('--throttling='));
+    if (arg) {
+        const value = arg.split('=')[1].trim().toLowerCase();
+        if (value === 'off' || value === 'false' || value === '0') return false;
+        if (value === 'on' || value === 'true' || value === '1') return true;
+    }
+    return !process.argv.includes('--no-throttling');
+})();
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -121,10 +130,12 @@ async function runLighthouse(url, device) {
         args.push('--screenEmulation.deviceScaleFactor=1');
         args.push('--screenEmulation.mobile=false');
         args.push('--screenEmulation.disabled=false');
-        args.push('--throttling-method=devtools');
-        args.push('--throttling.rttMs=40');
-        args.push('--throttling.throughputKbps=10240');
-        args.push('--throttling.cpuSlowdownMultiplier=1');
+        if (THROTTLING_ENABLED) {
+            args.push('--throttling-method=devtools');
+            args.push('--throttling.rttMs=40');
+            args.push('--throttling.throughputKbps=10240');
+            args.push('--throttling.cpuSlowdownMultiplier=1');
+        }
     } else {
         args.push('--emulated-form-factor=mobile');
         args.push('--screenEmulation.width=412');
@@ -132,10 +143,12 @@ async function runLighthouse(url, device) {
         args.push('--screenEmulation.deviceScaleFactor=2.625');
         args.push('--screenEmulation.mobile=true');
         args.push('--screenEmulation.disabled=false');
-        args.push('--throttling-method=devtools');
-        args.push('--throttling.rttMs=150');
-        args.push('--throttling.throughputKbps=1638.4');
-        args.push('--throttling.cpuSlowdownMultiplier=4');
+        if (THROTTLING_ENABLED) {
+            args.push('--throttling-method=devtools');
+            args.push('--throttling.rttMs=150');
+            args.push('--throttling.throughputKbps=1638.4');
+            args.push('--throttling.cpuSlowdownMultiplier=4');
+        }
     }
     
     try {
