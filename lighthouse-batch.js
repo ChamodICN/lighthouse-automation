@@ -149,7 +149,7 @@ async function main() {
     }
     
     // Create CSV
-    const csvHeader = 'URL,Device,Performance,Accessibility,Best Practices,SEO,FCP,LCP,TBT,CLS,SI\n';
+    const csvHeader = 'URL,Device,Performance,FCP,LCP,TBT,CLS,SI,Accessibility,Best Practices,SEO\n';
     fs.writeFileSync(OUTPUT_CSV, csvHeader);
 
     await startChrome();
@@ -166,7 +166,7 @@ async function main() {
             const result = await runLighthouse(url, device);
 
             if (result) {
-                const row = `${result.url},${result.device},${result.performance},${result.accessibility},${result.bestPractices},${result.seo},${result.fcp},${result.lcp},${result.tbt},${result.cls},${result.si}\n`;
+                const row = `${result.url},${result.device},${result.performance},${result.fcp / 1000},${result.lcp / 1000},${result.tbt / 1000},${result.cls},${result.si / 1000},${result.accessibility},${result.bestPractices},${result.seo}\n`;
                 fs.appendFileSync(OUTPUT_CSV, row);
                 console.log(`✓ ${device} complete - Performance: ${result.performance}`);
             }
