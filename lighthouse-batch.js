@@ -10,6 +10,7 @@ const execFile = promisify(require('child_process').execFile);
 const URLS_FILE = 'urls.txt';
 const OUTPUT_CSV = 'lighthouse-results.csv';
 const DEBUG_PORT = Number(process.env.CHROME_DEBUG_PORT || 9222);
+const DEFAULT_PROFILE_DIR = path.join(process.env.USERPROFILE || 'C:\\Users\\Gray', 'chrome-debug-profile');
 
 async function killChrome() {
     try {
@@ -80,17 +81,17 @@ async function waitForDebugPort(port, timeoutMs = 15000) {
 
 async function startChrome() {
     const chromePath = resolveChromePath();
-    const userDataDir = process.env.CHROME_USER_DATA_DIR || path.join(os.tmpdir(), 'chrome-debug-profile');
+    const userDataDir = process.env.CHROME_USER_DATA_DIR || DEFAULT_PROFILE_DIR;
     const chromeArgs = [
         `--remote-debugging-port=${DEBUG_PORT}`,
-        `--user-data-dir=${userDataDir}`,
-        '--no-first-run',
-        '--no-default-browser-check',
-        '--disable-extensions',
-        '--disable-gpu'
+        `--user-data-dir=${userDataDir}`
     ];
 
-    spawn(chromePath, chromeArgs, { detached: true, stdio: 'ignore', windowsHide: true });
+    spawn('cmd', ['/c', 'start', '', chromePath, ...chromeArgs], {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true
+    });
     await waitForDebugPort(DEBUG_PORT);
 }
 
@@ -101,7 +102,8 @@ async function runLighthouse(url, device) {
         `--port=${DEBUG_PORT}`,
         '--output=json',
         `--output-path=${jsonFile}`,
-        '--quiet'
+        '--quiet',
+        '--view'
     ];
     
     if (device === 'desktop') {
