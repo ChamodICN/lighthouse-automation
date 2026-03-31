@@ -56,6 +56,31 @@ function formatDateDDMMYYYY(date = new Date()) {
     return `${dd}/${mm}/${yyyy}`;
 }
 
+function getCellDisplayValue(cell) {
+    let cellValue = cell.value;
+
+    if (cellValue && typeof cellValue === 'object' && cellValue.formula) {
+        cellValue = cellValue.result;
+    }
+
+    if (cellValue instanceof Date) {
+        const dd = String(cellValue.getDate()).padStart(2, '0');
+        const mm = String(cellValue.getMonth() + 1).padStart(2, '0');
+        const yyyy = cellValue.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+    }
+
+    if (typeof cellValue === 'string') {
+        return cellValue.trim();
+    }
+
+    if (cellValue !== null && cellValue !== undefined) {
+        return String(cellValue).trim();
+    }
+
+    return '';
+}
+
 function resolveChromePath() {
     if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
 
@@ -219,8 +244,9 @@ async function updateExcelResults(resultsByHost) {
 
         let targetRow = null;
         for (let row = 1; row <= worksheet.rowCount; row += 1) {
-            const cellValue = worksheet.getCell(row, 2).text || worksheet.getCell(row, 2).value;
-            if (String(cellValue).trim() === today) {
+            const cell = worksheet.getCell(row, 2);
+            const cellDateStr = getCellDisplayValue(cell);
+            if (cellDateStr === today) {
                 targetRow = row;
                 break;
             }
