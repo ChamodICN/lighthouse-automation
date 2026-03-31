@@ -49,33 +49,31 @@ function normalizeToHostname(value) {
     }
 }
 
-function formatDateDDMMYYYY(date = new Date()) {
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
+function formatDateYYYYMMDD(date = new Date()) {
     const yyyy = date.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
 }
 
-function getCellDisplayValue(cell) {
-    let cellValue = cell.value;
+function getCellDateString(cell) {
+    let effectiveValue = cell.value;
+    console.log("effectiveValue: ", effectiveValue)
 
-    if (cellValue && typeof cellValue === 'object' && cellValue.formula) {
-        cellValue = cellValue.result;
+    if (cell.type === ExcelJS.ValueType.Formula && cell.result !== undefined) {
+        effectiveValue = cell.result;
+        console.log("result: ", result)
     }
 
-    if (cellValue instanceof Date) {
-        const dd = String(cellValue.getDate()).padStart(2, '0');
-        const mm = String(cellValue.getMonth() + 1).padStart(2, '0');
-        const yyyy = cellValue.getFullYear();
-        return `${dd}/${mm}/${yyyy}`;
+    if (effectiveValue instanceof Date) {
+        const year = effectiveValue.getFullYear();
+        const month = String(effectiveValue.getMonth() + 1).padStart(2, '0');
+        const day = String(effectiveValue.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
-    if (typeof cellValue === 'string') {
-        return cellValue.trim();
-    }
-
-    if (cellValue !== null && cellValue !== undefined) {
-        return String(cellValue).trim();
+    if (typeof effectiveValue === 'string') {
+        return effectiveValue.trim();
     }
 
     return '';
@@ -231,7 +229,7 @@ async function updateExcelResults(resultsByHost) {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(EXCEL_PATH);
 
-    const today = formatDateDDMMYYYY();
+    const today = formatDateYYYYMMDD();
 
     workbook.worksheets.forEach(worksheet => {
         const sheetUrl = worksheet.getCell('A1').text || worksheet.getCell('A1').value;
@@ -245,7 +243,8 @@ async function updateExcelResults(resultsByHost) {
         let targetRow = null;
         for (let row = 1; row <= worksheet.rowCount; row += 1) {
             const cell = worksheet.getCell(row, 2);
-            const cellDateStr = getCellDisplayValue(cell);
+            console.log("raw cell: ", cell)
+            const cellDateStr = getCellDateString(cell);
             if (cellDateStr === today) {
                 targetRow = row;
                 break;
