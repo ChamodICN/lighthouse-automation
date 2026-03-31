@@ -62,7 +62,7 @@ function getCellDateString(cell) {
 
     if (cell.type === ExcelJS.ValueType.Formula && cell.result !== undefined) {
         effectiveValue = cell.result;
-        console.log("result: ", result)
+        console.log("result: ", effectiveValue)
     }
 
     if (effectiveValue instanceof Date) {
