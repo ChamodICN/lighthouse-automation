@@ -10,7 +10,7 @@ const execFile = promisify(require('child_process').execFile);
 
 const URLS_FILE = 'urls.txt';
 const OUTPUT_CSV = `lighthouse-results/lighthouse-results-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
-const EXCEL_PATH = process.env.EXCEL_PATH || 'Working - Page Speed.xlsx';
+const EXCEL_PATH = "C:/Users/Gray/Desktop/Working - Page Speed.xlsx"
 const DEBUG_PORT = Number(process.env.CHROME_DEBUG_PORT || 9222);
 const DEFAULT_PROFILE_DIR = path.join(process.env.USERPROFILE || 'C:\\Users\\Gray', 'chrome-debug-profile');
 const LIMIT = (() => {
