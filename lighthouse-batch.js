@@ -2,6 +2,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const http = require('http');
+const ExcelJS = require('exceljs');
 const { spawn } = require('child_process');
 const { promisify } = require('util');
 const exec = promisify(require('child_process').exec);
@@ -9,6 +10,7 @@ const execFile = promisify(require('child_process').execFile);
 
 const URLS_FILE = 'urls.txt';
 const OUTPUT_CSV = `lighthouse-results/lighthouse-results-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
+const EXCEL_PATH = process.env.EXCEL_PATH || 'Working - Page Speed.xlsx';
 const DEBUG_PORT = Number(process.env.CHROME_DEBUG_PORT || 9222);
 const DEFAULT_PROFILE_DIR = path.join(process.env.USERPROFILE || 'C:\\Users\\Gray', 'chrome-debug-profile');
 const LIMIT = (() => {
@@ -36,6 +38,15 @@ function sleep(ms) {
 function toSigFigs(value, sig = 3) {
     if (!Number.isFinite(value)) return value;
     return Number.parseFloat(Number(value).toPrecision(sig));
+}
+
+function normalizeToHostname(value) {
+    if (!value) return '';
+    try {
+        return new URL(value).hostname;
+    } catch (e) {
+        return String(value).trim();
+    }
 }
 
 function resolveChromePath() {
@@ -157,12 +168,7 @@ async function runLighthouse(url, device) {
         
         const data = JSON.parse(fs.readFileSync(jsonFile, 'utf8'));
         
-        let domain = url;
-        try {
-            domain = new URL(url).hostname;
-        } catch (e) {
-            // Fallback to raw input if URL parsing fails
-        }
+        const domain = normalizeToHostname(url);
 
         const result = {
             url: domain,
@@ -189,6 +195,57 @@ async function runLighthouse(url, device) {
     }
 }
 
+async function updateExcelResults(resultsByHost) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(EXCEL_PATH);
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    workbook.worksheets.forEach(worksheet => {
+        const sheetUrl = worksheet.getCell('A1').text || worksheet.getCell('A1').value;
+        const sheetHost = normalizeToHostname(sheetUrl);
+        if (!sheetHost || !resultsByHost.has(sheetHost)) return;
+
+        const resultForHost = resultsByHost.get(sheetHost);
+        const desktop = resultForHost.desktop || null;
+        const mobile = resultForHost.mobile || null;
+
+        let targetRow = null;
+        for (let row = 1; row <= worksheet.rowCount; row += 1) {
+            const cellValue = worksheet.getCell(row, 2).text || worksheet.getCell(row, 2).value;
+            if (String(cellValue).trim() === today) {
+                targetRow = row;
+                break;
+            }
+        }
+
+        if (!targetRow) {
+            console.warn(`No matching date ${today} found in Column B for sheet "${worksheet.name}" (${sheetHost}).`);
+            return;
+        }
+
+        if (desktop) {
+            worksheet.getCell(targetRow, 3).value = desktop.performance;
+            worksheet.getCell(targetRow, 4).value = desktop.fcp;
+            worksheet.getCell(targetRow, 5).value = desktop.tbt;
+            worksheet.getCell(targetRow, 6).value = desktop.si;
+            worksheet.getCell(targetRow, 7).value = desktop.lcp;
+            worksheet.getCell(targetRow, 8).value = desktop.cls;
+        }
+
+        if (mobile) {
+            worksheet.getCell(targetRow, 11).value = mobile.performance;
+            worksheet.getCell(targetRow, 12).value = mobile.fcp;
+            worksheet.getCell(targetRow, 13).value = mobile.tbt;
+            worksheet.getCell(targetRow, 14).value = mobile.si;
+            worksheet.getCell(targetRow, 15).value = mobile.lcp;
+            worksheet.getCell(targetRow, 16).value = mobile.cls;
+        }
+    });
+
+    await workbook.xlsx.writeFile(EXCEL_PATH);
+}
+
 async function main() {
     // Read URLs
     let urls = fs.readFileSync(URLS_FILE, 'utf8')
@@ -205,6 +262,8 @@ async function main() {
     fs.writeFileSync(OUTPUT_CSV, csvHeader);
 
     await startChrome();
+
+    const resultsByHost = new Map();
     
     // Process each URL
     for (const url of urls) {
@@ -218,6 +277,10 @@ async function main() {
             const result = await runLighthouse(url, device);
 
             if (result) {
+                const existing = resultsByHost.get(result.url) || {};
+                existing[device] = result;
+                resultsByHost.set(result.url, existing);
+
                 const benchmark = result.benchmarkIndex === null ? '' : result.benchmarkIndex;
                 const row = `${result.url},${result.device},${result.performance},${result.fcp},${result.lcp},${result.tbt},${result.cls},${result.si},${result.accessibility},${result.bestPractices},${result.seo},${benchmark}\n`;
                 fs.appendFileSync(OUTPUT_CSV, row);
@@ -226,6 +289,8 @@ async function main() {
             }
         }
     }
+
+    await updateExcelResults(resultsByHost);
     
     console.log('\n========================================');
     console.log('All tests complete!');
