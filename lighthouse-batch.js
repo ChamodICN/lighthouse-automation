@@ -49,6 +49,13 @@ function normalizeToHostname(value) {
     }
 }
 
+function formatDateDDMMYYYY(date = new Date()) {
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+}
+
 function resolveChromePath() {
     if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
 
@@ -199,7 +206,7 @@ async function updateExcelResults(resultsByHost) {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.readFile(EXCEL_PATH);
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = formatDateDDMMYYYY();
 
     workbook.worksheets.forEach(worksheet => {
         const sheetUrl = worksheet.getCell('A1').text || worksheet.getCell('A1').value;
