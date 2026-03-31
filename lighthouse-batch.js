@@ -58,11 +58,9 @@ function formatDateYYYYMMDD(date = new Date()) {
 
 function getCellDateString(cell) {
     let effectiveValue = cell.value;
-    console.log("effectiveValue: ", effectiveValue)
 
     if (cell.type === ExcelJS.ValueType.Formula && cell.result !== undefined) {
         effectiveValue = cell.result;
-        console.log("result: ", effectiveValue)
     }
 
     if (effectiveValue instanceof Date) {
@@ -243,7 +241,6 @@ async function updateExcelResults(resultsByHost) {
         let targetRow = null;
         for (let row = 1; row <= worksheet.rowCount; row += 1) {
             const cell = worksheet.getCell(row, 2);
-            console.log("raw cell: ", cell)
             const cellDateStr = getCellDateString(cell);
             if (cellDateStr === today) {
                 targetRow = row;
@@ -263,6 +260,10 @@ async function updateExcelResults(resultsByHost) {
             worksheet.getCell(targetRow, 6).value = desktop.si;
             worksheet.getCell(targetRow, 7).value = desktop.lcp;
             worksheet.getCell(targetRow, 8).value = desktop.cls;
+            console.log(
+                `Excel desktop write [${worksheet.name} ${sheetHost} row ${targetRow}]: ` +
+                `C=${desktop.performance}, D=${desktop.fcp}, E=${desktop.tbt}, F=${desktop.si}, G=${desktop.lcp}, H=${desktop.cls}`
+            );
         }
 
         if (mobile) {
